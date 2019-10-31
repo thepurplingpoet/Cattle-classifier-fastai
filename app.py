@@ -20,14 +20,14 @@ from werkzeug.utils import secure_filename
 # Define a flask app
 app = Flask(__name__)
 
-# Model saved with Keras model.save()
-
 
 path = Path("path")
-classes = ['cleanwater', 'dirtywater']
-data2 = ImageDataBunch.single_from_classes(path, classes, tfms=get_transforms(), size=224).normalize(imagenet_stats)
+classes = ['african_buffalo', 'bull', 'water_buffalo']
+data2 = ImageDataBunch.single_from_classes(path, classes, ds_tfms=get_transforms(), size=224).normalize(imagenet_stats)
 learn = create_cnn(data2, models.resnet34)
-learn.load('stage-2')
+learn = load_learner(path)
+
+#learn.load('stage-2')
 
 
 
@@ -36,13 +36,11 @@ def model_predict(img_path):
     """
        model_predict will return the preprocessed image
     """
-   
+    defaults.device = torch.device('cpu')
     img = open_image(img_path)
     pred_class,pred_idx,outputs = learn.predict(img)
-    return pred_class
+    return str(pred_class).replace('_', ' ').upper()
     
-
-
 
 
 @app.route('/', methods=['GET'])
@@ -65,7 +63,7 @@ def upload():
 
         # Make prediction
         preds = model_predict(file_path)
-        return preds
+        return str(preds)
     return None
 
 
